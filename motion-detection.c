@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <unistd.h>
 
-
 int valid_parameters(char * current_image_file, char * reference_image_file);
 
 int main(int argc, char **argv){
@@ -15,7 +14,6 @@ int main(int argc, char **argv){
         perror("Invalid parameters");
         return EXIT_FAILURE;
     }
-
 
 return EXIT_SUCCESS;
 }
