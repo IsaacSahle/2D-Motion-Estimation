@@ -118,12 +118,13 @@ void encode(
 
     int current_x, current_y;
     for(int y = 0; y < current_height; y+=BLOCK_HEIGHT) {
-        int motion_vector_x, motion_vector_y, min_sad = INT_MAX;
+        int motion_vector_x, motion_vector_y, min_sad;
         for(int x = 0; x < current_width; x+=BLOCK_WIDTH) {
             int r = y;
             int s = x;
             motion_vector_x = r - y;
             motion_vector_y = s - x;
+            min_sad = INT_MAX;
             // printf("x: %d y: %d\n", x, y);
             if (compute_sad(y, x, r, s, current_image, reference_image, current_height, reference_height, current_width, reference_width) >= 0) {
                 min_sad = compute_sad(y, x, r, s, current_image, reference_image, current_height, reference_height, current_width, reference_width);
@@ -227,11 +228,11 @@ void encode(
                     }
                 }
             }
+            if (motion_vector_x != 0 || motion_vector_y != 0) {
+                printf("SAD: %d\n", min_sad);
+                printf("Motion x: %d y: %d\n", motion_vector_x, motion_vector_y);
+            }
         }
-        printf("SAD: %d\n", min_sad);
-       if(motion_vector_x != 0 || motion_vector_y != 0){
-            printf("Motion x: %d y: %d\n", motion_vector_x, motion_vector_y);
-       }
     }
 }
 
