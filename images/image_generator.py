@@ -5,14 +5,14 @@ cX, cY = (64,64)
 shift = 30
 bboxCurrent =  ((x/2 - cX/2) + shift, (y/2 - cY/2) + shift, (x/2 + cX/2) + shift, (y/2 + cY/2) + shift)
 bboxReference = (x/2 - cX/2, y/2 - cY/2, x/2 + cX/2, y/2 + cY/2)
-currentImage = Image.new("L", (x, y),color="black")
+currentImage = Image.new("L", (x, y),color="white")
 referenceImage = Image.new("L", (x, y),color="black")
 
-cDraw = ImageDraw.Draw(currentImage)
-rDraw = ImageDraw.Draw(referenceImage)
+# cDraw = ImageDraw.Draw(currentImage)
+# rDraw = ImageDraw.Draw(referenceImage)
 
-cDraw.ellipse(bboxCurrent, fill=255)
-rDraw.ellipse(bboxReference, fill=255)
+# cDraw.ellipse(bboxCurrent, fill=255)
+# rDraw.ellipse(bboxReference, fill=255)
 
-currentImage.save('current.png')
-referenceImage.save('reference.png')
+currentImage.save('./images/current-white.png')
+referenceImage.save('./images/reference-black.png')

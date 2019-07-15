@@ -228,9 +228,10 @@ void encode(
                 }
             }
         }
-
         printf("SAD: %d\n", min_sad);
-        printf("Motion x: %d y: %d\n", motion_vector_x, motion_vector_y);
+       if(motion_vector_x != 0 || motion_vector_y != 0){
+            printf("Motion x: %d y: %d\n", motion_vector_x, motion_vector_y);
+       }
     }
 }
 
@@ -265,7 +266,7 @@ int compute_sad(
         }
     }
     if(sad > 0) {
-        printf("Sad calculated: %d\n", sad);
+        // printf("Sad calculated: %d\n", sad);
     }
     
     return sad;
