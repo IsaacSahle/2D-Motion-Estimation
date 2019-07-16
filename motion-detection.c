@@ -230,7 +230,7 @@ void encode(
             }
             if (motion_vector_x != 0 || motion_vector_y != 0) {
                 printf("SAD: %d\n", min_sad);
-                printf("Motion x: %d y: %d\n", motion_vector_x, motion_vector_y);
+                printf("Motion x: %d y: %d\n", motion_vector_x / BLOCK_HEIGHT, motion_vector_y / BLOCK_WIDTH);
             }
         }
     }
