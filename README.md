@@ -15,6 +15,16 @@ Typically, motion estimation is very computationally demanding, so it is the bot
 Our program will take in two images, one being the current and the other a reference image, and will output the motion vector and differences in the images.
 It will also output the minimum SAD value.
 
+Example current and reference images:
+
+#### Current Image
+
+![current](https://user-images.githubusercontent.com/28017034/61314897-7de9c380-a7b2-11e9-87f3-a66dd2a2cd9e.png)
+
+#### Reference Image
+
+![reference](https://user-images.githubusercontent.com/28017034/61314900-80e4b400-a7b2-11e9-9188-62c3cad5de67.png)
+
 ### Running the Program
 
 In order to run the application, just run the following commands:
