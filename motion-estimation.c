@@ -259,7 +259,7 @@ int compute_sad(
         for (j = 0; j < BLOCK_WIDTH; j++) {
             diff = current_image[y + i][x + j] - reference_image[r+ i][s + j];
             if (diff < 0) {
-                diff -= diff;
+                diff -= (2 * diff);
             }
             sad += diff;
         }
