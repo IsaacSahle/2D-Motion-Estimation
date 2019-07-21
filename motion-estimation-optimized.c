@@ -7,6 +7,7 @@
 #include <png.h>
 #include <limits.h>
 #include <string.h>
+// #include <arm_neon.h>
 
 #define BLOCK_HEIGHT 16
 #define BLOCK_WIDTH 16
@@ -19,7 +20,7 @@ void encode(
     int reference_height,
     int current_width,
     int reference_width);
-
+int num_blocks_x, num_blocks_y;
 int main(int argc, char **argv)
 {
     if (argc < 2 || !valid_parameters(argv[1], argv[2]))
@@ -116,45 +117,49 @@ void encode(
 {
 
     int current_x, current_y;
-    int motion_vector_y, motion_vector_x, min_sad;
-    int test_r, test_s;
-    int sad_values[current_height / BLOCK_HEIGHT][current_width / BLOCK_WIDTH];
-    memset(sad_values, 0, ((current_height / BLOCK_HEIGHT) * (current_width / BLOCK_WIDTH)) * sizeof(int));
-    int i, j, diff, sad;
-    for (int y = 0; y < current_height; y += BLOCK_HEIGHT)
+    // int num_blocks_y, num_blocks_x;
+    num_blocks_y = ((current_height << BLOCK_HEIGHT)/BLOCK_HEIGHT) >> BLOCK_HEIGHT;
+    num_blocks_x = ((current_width << BLOCK_WIDTH)/BLOCK_WIDTH) >> BLOCK_WIDTH;
+
+    int sad_values[num_blocks_y][num_blocks_x];
+    memset(sad_values, 0, ((num_blocks_y) * (num_blocks_x)) * sizeof(int));
+    int current_sad = 0;
+    for (int y = 0; y < current_height; y+=1)
     {
-        for (int x = 0; x < current_width; x += BLOCK_WIDTH)
+        for (int x = 0; x < current_width; x+=1)
         {
-            int i, j, diff, sad;
-            sad = 0;
-            for (i = 0; i < BLOCK_HEIGHT; i++)
+            // TODO(): figure why this is better than mod
+            // Operator strength reduction
+            int diff = current_image[y][x] - reference_image[y][x];
+            
+            if (diff < 0)
             {
-                for (j = 0; j < BLOCK_WIDTH; j++)
-                {
-                    diff = current_image[y + i][x + j] - reference_image[y + i][x + j];
-                    if (diff < 0)
-                    {
-                        diff -= (2 * diff);
-                    }
-                    sad += diff;
-                }
+                current_sad -= diff;
             }
-            int y_index = y/BLOCK_HEIGHT;
-            int x_index = x/BLOCK_WIDTH;
-            sad_values[y_index][x_index] = sad;
+            else
+            {
+                current_sad += diff;
+            }
+            int x_quotient = ((x << 16) / 16) >> 16;
+            if (x - (16 * x_quotient) == 15)
+            {
+                int y_quotient = ((y << 16) / 16) >> 16;
+                sad_values[y_quotient][x_quotient] += current_sad;
+                current_sad = 0;
+            }
         }
     }
 
-    for (int y = 0; y < current_height / BLOCK_HEIGHT; y++)
+        for (int y = 0; y < num_blocks_y; y++)
     {
-        for (int x = 0; x < current_width / BLOCK_WIDTH; x++)
+        for (int x = 0; x < num_blocks_x; x++)
         {
             int min_sad = sad_values[y][x];
             int motion_vector_x = 0;
             int motion_vector_y = 0;
             if (min_sad > 0)
             {
-                if (x + 1 < current_width / BLOCK_WIDTH)
+                if (x + 1 < num_blocks_x)
                 {
                     if (sad_values[y][x + 1] < min_sad)
                     {
@@ -164,7 +169,7 @@ void encode(
                     }
                 }
 
-                if (x + 2 < current_width / BLOCK_WIDTH)
+                if (x + 2 < num_blocks_x)
                 {
                     if (sad_values[y][x + 2] < min_sad)
                     {
@@ -174,7 +179,27 @@ void encode(
                     }
                 }
 
-                if (y + 1 < current_height / BLOCK_HEIGHT)
+                if (x - 1 >= 0)
+                {
+                    if (sad_values[y][x - 1] < min_sad)
+                    {
+                        min_sad = sad_values[y][x - 1];
+                        motion_vector_x = -1;
+                        motion_vector_y = 0;
+                    }
+                }
+
+                if (x - 2 >= 0)
+                {
+                    if (sad_values[y][x - 2] < min_sad)
+                    {
+                        min_sad = sad_values[y][x - 2];
+                        motion_vector_x = -2;
+                        motion_vector_y = 0;
+                    }
+                }
+
+                if (y + 1 < num_blocks_y)
                 {
                     if (sad_values[y + 1][x] < min_sad)
                     {
@@ -184,7 +209,7 @@ void encode(
                     }
                 }
 
-                if (y + 2 < current_height / BLOCK_HEIGHT)
+                if (y + 2 < num_blocks_y)
                 {
                     if (sad_values[y + 2][x] < min_sad)
                     {
@@ -211,26 +236,6 @@ void encode(
                         min_sad = sad_values[y - 2][x];
                         motion_vector_x = 0;
                         motion_vector_y = -2;
-                    }
-                }
-
-                if (x - 1 >= 0)
-                {
-                    if (sad_values[y][x - 1] < min_sad)
-                    {
-                        min_sad = sad_values[y][x - 1];
-                        motion_vector_x = -1;
-                        motion_vector_y = 0;
-                    }
-                }
-
-                if (x - 2 >= 0)
-                {
-                    if (sad_values[y][x - 2] < min_sad)
-                    {
-                        min_sad = sad_values[y][x - 2];
-                        motion_vector_x = -2;
-                        motion_vector_y = 0;
                     }
                 }
                 // if (min_sad > 0)
