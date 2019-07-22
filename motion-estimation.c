@@ -10,6 +10,7 @@
 
 #define BLOCK_HEIGHT 16
 #define BLOCK_WIDTH 16
+#define INCOMPLETE_SAD -1 // MUST BE NEGATIVE
 
 int valid_parameters(char *current_image_file, char *reference_image_file);
 void encode(
@@ -127,21 +128,29 @@ void encode(
         {
             int i, j, diff, sad;
             sad = 0;
-            for (i = 0; i < BLOCK_HEIGHT; i++)
+            int y_index = y / BLOCK_HEIGHT;
+            int x_index = x / BLOCK_WIDTH;
+
+            if (y + BLOCK_HEIGHT <= current_height && x + BLOCK_WIDTH <= current_width)
             {
-                for (j = 0; j < BLOCK_WIDTH; j++)
+                for (i = 0; i < BLOCK_HEIGHT; i++)
                 {
-                    diff = current_image[y + i][x + j] - reference_image[y + i][x + j];
-                    if (diff < 0)
+                    for (j = 0; j < BLOCK_WIDTH; j++)
                     {
-                        diff -= (2 * diff);
+                        diff = current_image[y + i][x + j] - reference_image[y + i][x + j];
+                        if (diff < 0)
+                        {
+                            diff -= (2 * diff);
+                        }
+                        sad += diff;
                     }
-                    sad += diff;
                 }
+                sad_values[y_index][x_index] = sad;
             }
-            int y_index = y/BLOCK_HEIGHT;
-            int x_index = x/BLOCK_WIDTH;
-            sad_values[y_index][x_index] = sad;
+            else
+            {
+                sad_values[y_index][x_index] = -1;
+            }
         }
     }
 
@@ -156,7 +165,7 @@ void encode(
             {
                 if (x + 1 < current_width / BLOCK_WIDTH)
                 {
-                    if (sad_values[y][x + 1] < min_sad)
+                    if (sad_values[y][x + 1] < min_sad && sad_values[y][x + 1] != INCOMPLETE_SAD)
                     {
                         min_sad = sad_values[y][x + 1];
                         motion_vector_x = 1;
@@ -166,7 +175,7 @@ void encode(
 
                 if (x + 2 < current_width / BLOCK_WIDTH)
                 {
-                    if (sad_values[y][x + 2] < min_sad)
+                    if (sad_values[y][x + 2] < min_sad && sad_values[y][x + 2] != INCOMPLETE_SAD)
                     {
                         min_sad = sad_values[y][x + 2];
                         motion_vector_x = 2;
@@ -174,49 +183,9 @@ void encode(
                     }
                 }
 
-                if (y + 1 < current_height / BLOCK_HEIGHT)
-                {
-                    if (sad_values[y + 1][x] < min_sad)
-                    {
-                        min_sad = sad_values[y + 1][x];
-                        motion_vector_x = 0;
-                        motion_vector_y = 1;
-                    }
-                }
-
-                if (y + 2 < current_height / BLOCK_HEIGHT)
-                {
-                    if (sad_values[y + 2][x] < min_sad)
-                    {
-                        min_sad = sad_values[y + 2][x];
-                        motion_vector_x = 0;
-                        motion_vector_y = 2;
-                    }
-                }
-
-                if (y - 1 >= 0)
-                {
-                    if (sad_values[y - 1][x] < min_sad)
-                    {
-                        min_sad = sad_values[y - 1][x];
-                        motion_vector_x = 0;
-                        motion_vector_y = -1;
-                    }
-                }
-
-                if (y - 2 >= 0)
-                {
-                    if (sad_values[y - 2][x] < min_sad)
-                    {
-                        min_sad = sad_values[y - 2][x];
-                        motion_vector_x = 0;
-                        motion_vector_y = -2;
-                    }
-                }
-
                 if (x - 1 >= 0)
                 {
-                    if (sad_values[y][x - 1] < min_sad)
+                    if (sad_values[y][x - 1] < min_sad && sad_values[y][x - 1] != INCOMPLETE_SAD)
                     {
                         min_sad = sad_values[y][x - 1];
                         motion_vector_x = -1;
@@ -226,11 +195,51 @@ void encode(
 
                 if (x - 2 >= 0)
                 {
-                    if (sad_values[y][x - 2] < min_sad)
+                    if (sad_values[y][x - 2] < min_sad && sad_values[y][x - 2] != INCOMPLETE_SAD)
                     {
                         min_sad = sad_values[y][x - 2];
                         motion_vector_x = -2;
                         motion_vector_y = 0;
+                    }
+                }
+
+                if (y + 1 < current_height / BLOCK_HEIGHT)
+                {
+                    if (sad_values[y + 1][x] < min_sad && sad_values[y + 1][x] != INCOMPLETE_SAD)
+                    {
+                        min_sad = sad_values[y + 1][x];
+                        motion_vector_x = 0;
+                        motion_vector_y = 1;
+                    }
+                }
+
+                if (y + 2 < current_height / BLOCK_HEIGHT)
+                {
+                    if (sad_values[y + 2][x] < min_sad && sad_values[y + 2][x] != INCOMPLETE_SAD)
+                    {
+                        min_sad = sad_values[y + 2][x];
+                        motion_vector_x = 0;
+                        motion_vector_y = 2;
+                    }
+                }
+
+                if (y - 1 >= 0)
+                {
+                    if (sad_values[y - 1][x] < min_sad && sad_values[y - 1][x] != INCOMPLETE_SAD)
+                    {
+                        min_sad = sad_values[y - 1][x];
+                        motion_vector_x = 0;
+                        motion_vector_y = -1;
+                    }
+                }
+
+                if (y - 2 >= 0)
+                {
+                    if (sad_values[y - 2][x] < min_sad && sad_values[y - 2][x] != INCOMPLETE_SAD)
+                    {
+                        min_sad = sad_values[y - 2][x];
+                        motion_vector_x = 0;
+                        motion_vector_y = -2;
                     }
                 }
                 // if (min_sad > 0)
