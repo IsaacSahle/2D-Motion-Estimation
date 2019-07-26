@@ -7,12 +7,14 @@
 #include <png.h>
 #include <limits.h>
 #include <string.h>
-// #include <arm_neon.h>
+#include <arm_neon.h>
 
 #define BLOCK_HEIGHT 16
 #define BLOCK_WIDTH 16
 
 int valid_parameters(char *current_image_file, char *reference_image_file);
+void print_uint8 (uint8x16_t data);
+
 void encode(
     png_bytep *current_image,
     png_bytep *reference_image,
@@ -114,40 +116,37 @@ void encode(
     int current_width,
     int reference_width)
 {
-
     int num_blocks_y, num_blocks_x, y_bound, x_bound;
     num_blocks_y = ((current_height << BLOCK_HEIGHT) / BLOCK_HEIGHT) >> BLOCK_HEIGHT;
     num_blocks_x = ((current_width << BLOCK_WIDTH) / BLOCK_WIDTH) >> BLOCK_WIDTH;
     y_bound = num_blocks_y * BLOCK_HEIGHT;
     x_bound = num_blocks_x * BLOCK_WIDTH;
 
-    int sad_values[num_blocks_y][num_blocks_x];
-    memset(sad_values, 0, ((num_blocks_y) * (num_blocks_x)) * sizeof(int));
+    uint16_t sad_values[num_blocks_y][num_blocks_x];
+    memset(sad_values, 0, ((num_blocks_y) * (num_blocks_x)) * sizeof(uint16_t));
     int current_sad = 0;
     for (int y = 0; y < y_bound; y++)
     {
-        for (int x = 0; x < x_bound; x++)
+        int row_block = 0;
+        for (int x = 0; x < x_bound; x+= BLOCK_WIDTH)
         {
-            int diff = current_image[y][x] - reference_image[y][x];
+            
+            uint8x16_t reference_row = vld1q_u8(&(reference_image[y][x]));
+            uint8x16_t current_row = vld1q_u8(&(current_image[y][x]));
+            uint8x16_t result = vabdq_u8(current_row, reference_row);
+            uint16_t sum = 0;
+            uint8_t values[BLOCK_WIDTH];
+            vst1q_u8 (values, result);
 
-            if (diff < 0)
-            {
-                current_sad -= diff;
+            for (int z = 0; z < BLOCK_WIDTH; z++) {
+                sum += values[z];
             }
-            else
-            {
-                current_sad += diff;
-            }
-
-            // TODO(isaacsahle): figure why this is better than mod
+    
+            // TODO(isaacsahle): figure why this is better than division
             // Operator strength reduction
-            int x_quotient = ((x << 16) / 16) >> 16;
-            if (x - (16 * x_quotient) == 15)
-            {
-                int y_quotient = ((y << 16) / 16) >> 16;
-                sad_values[y_quotient][x_quotient] += current_sad;
-                current_sad = 0;
-            }
+            int y_quotient = ((y << 16) / 16) >> 16;
+            sad_values[y_quotient][row_block] += sum;            
+            row_block++;
         }
     }
 
@@ -235,10 +234,7 @@ void encode(
                         }
                     }
                 }
-                // if (min_sad > 0)
-                // {
-                //     printf("Min sad: %d  motion x: %d y: %d\n", min_sad, motion_vector_x, motion_vector_y);
-                // }
+                // printf("Min sad: %u  motion x: %d y: %d\n", min_sad, motion_vector_x, motion_vector_y);
             }
         }
     }

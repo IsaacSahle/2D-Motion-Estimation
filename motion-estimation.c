@@ -130,7 +130,6 @@ void encode(
             sad = 0;
             int y_index = y / BLOCK_HEIGHT;
             int x_index = x / BLOCK_WIDTH;
-
             if (y + BLOCK_HEIGHT <= current_height && x + BLOCK_WIDTH <= current_width)
             {
                 for (i = 0; i < BLOCK_HEIGHT; i++)
