@@ -13,7 +13,6 @@
 #define BLOCK_WIDTH 16
 
 int valid_parameters(char *current_image_file, char *reference_image_file);
-void print_uint8 (uint8x16_t data);
 
 void encode(
     png_bytep *current_image,
@@ -125,29 +124,88 @@ void encode(
     uint16_t sad_values[num_blocks_y][num_blocks_x];
     memset(sad_values, 0, ((num_blocks_y) * (num_blocks_x)) * sizeof(uint16_t));
     int current_sad = 0;
-    for (int y = 0; y < y_bound; y++)
+    int y_block = 0;
+    int x_block;
+    for (int y = 0; y < y_bound; y += BLOCK_HEIGHT)
     {
-        int row_block = 0;
-        for (int x = 0; x < x_bound; x+= BLOCK_WIDTH)
+        x_block = 0;
+        for (int x = 0; x < x_bound; x += BLOCK_WIDTH)
         {
-            
-            uint8x16_t reference_row = vld1q_u8(&(reference_image[y][x]));
-            uint8x16_t current_row = vld1q_u8(&(current_image[y][x]));
-            uint8x16_t result = vabdq_u8(current_row, reference_row);
-            uint16_t sum = 0;
-            uint8_t values[BLOCK_WIDTH];
-            vst1q_u8 (values, result);
+            uint8x16_t reference_row_one = vld1q_u8(&(reference_image[y][x]));
+            uint8x16_t reference_row_two = vld1q_u8(&(reference_image[y + 1][x]));
+            uint8x16_t reference_row_three = vld1q_u8(&(reference_image[y + 2][x]));
+            uint8x16_t reference_row_four = vld1q_u8(&(reference_image[y + 3][x]));
+            uint8x16_t reference_row_five = vld1q_u8(&(reference_image[y + 4][x]));
+            uint8x16_t reference_row_six = vld1q_u8(&(reference_image[y + 5][x]));
+            uint8x16_t reference_row_seven = vld1q_u8(&(reference_image[y + 6][x]));
+            uint8x16_t reference_row_eight = vld1q_u8(&(reference_image[y + 7][x]));
+            uint8x16_t reference_row_nine = vld1q_u8(&(reference_image[y + 8][x]));
+            uint8x16_t reference_row_ten = vld1q_u8(&(reference_image[y + 9][x]));
+            uint8x16_t reference_row_eleven = vld1q_u8(&(reference_image[y + 10][x]));
+            uint8x16_t reference_row_twelve = vld1q_u8(&(reference_image[y + 11][x]));
+            uint8x16_t reference_row_thirteen = vld1q_u8(&(reference_image[y + 12][x]));
+            uint8x16_t reference_row_fourteen = vld1q_u8(&(reference_image[y + 13][x]));
+            uint8x16_t reference_row_fifteen = vld1q_u8(&(reference_image[y + 14][x]));
+            uint8x16_t reference_row_sixteen = vld1q_u8(&(reference_image[y + 15][x]));
 
-            for (int z = 0; z < BLOCK_WIDTH; z++) {
-                sum += values[z];
+            uint8x16_t current_row_one = vld1q_u8(&(current_image[y][x]));
+            uint8x16_t current_row_two = vld1q_u8(&(current_image[y + 1][x]));
+            uint8x16_t current_row_three = vld1q_u8(&(current_image[y + 2][x]));
+            uint8x16_t current_row_four = vld1q_u8(&(current_image[y + 3][x]));
+            uint8x16_t current_row_five = vld1q_u8(&(current_image[y + 4][x]));
+            uint8x16_t current_row_six = vld1q_u8(&(current_image[y + 5][x]));
+            uint8x16_t current_row_seven = vld1q_u8(&(current_image[y + 6][x]));
+            uint8x16_t current_row_eight = vld1q_u8(&(current_image[y + 7][x]));
+            uint8x16_t current_row_nine = vld1q_u8(&(current_image[y + 8][x]));
+            uint8x16_t current_row_ten = vld1q_u8(&(current_image[y + 9][x]));
+            uint8x16_t current_row_eleven = vld1q_u8(&(current_image[y + 10][x]));
+            uint8x16_t current_row_twelve = vld1q_u8(&(current_image[y + 11][x]));
+            uint8x16_t current_row_thirteen = vld1q_u8(&(current_image[y + 12][x]));
+            uint8x16_t current_row_fourteen = vld1q_u8(&(current_image[y + 13][x]));
+            uint8x16_t current_row_fifteen = vld1q_u8(&(current_image[y + 14][x]));
+            uint8x16_t current_row_sixteen = vld1q_u8(&(current_image[y + 15][x]));
+
+            uint8x16_t result_row_one = vabdq_u8(current_row_one, reference_row_one);
+            uint8x16_t result_row_two = vabdq_u8(current_row_two, reference_row_two);
+            uint8x16_t result_row_three = vabdq_u8(current_row_three, reference_row_three);
+            uint8x16_t result_row_four = vabdq_u8(current_row_four, reference_row_four);
+            uint8x16_t result_row_five = vabdq_u8(current_row_five, reference_row_five);
+            uint8x16_t result_row_six = vabdq_u8(current_row_six, reference_row_six);
+            uint8x16_t result_row_seven = vabdq_u8(current_row_seven, reference_row_seven);
+            uint8x16_t result_row_eight = vabdq_u8(current_row_eight, reference_row_eight);
+            uint8x16_t result_row_nine = vabdq_u8(current_row_nine, reference_row_nine);
+            uint8x16_t result_row_ten = vabdq_u8(current_row_ten, reference_row_ten);
+            uint8x16_t result_row_eleven = vabdq_u8(current_row_eleven, reference_row_eleven);
+            uint8x16_t result_row_twelve = vabdq_u8(current_row_twelve, reference_row_twelve);
+            uint8x16_t result_row_thirteen = vabdq_u8(current_row_thirteen, reference_row_thirteen);
+            uint8x16_t result_row_fourteen = vabdq_u8(current_row_fourteen, reference_row_fourteen);
+            uint8x16_t result_row_fifteen = vabdq_u8(current_row_fifteen, reference_row_fifteen);
+            uint8x16_t result_row_sixteen = vabdq_u8(current_row_sixteen, reference_row_sixteen);
+
+            uint16_t sum = 0;
+            for (int i = 0; i < BLOCK_WIDTH; i++)
+            {
+                sum += result_row_one[i];
+                sum += result_row_two[i];
+                sum += result_row_three[i];
+                sum += result_row_four[i];
+                sum += result_row_five[i];
+                sum += result_row_six[i];
+                sum += result_row_seven[i];
+                sum += result_row_eight[i];
+                sum += result_row_nine[i];
+                sum += result_row_ten[i];
+                sum += result_row_eleven[i];
+                sum += result_row_twelve[i];
+                sum += result_row_thirteen[i];
+                sum += result_row_fourteen[i];
+                sum += result_row_fifteen[i];
+                sum += result_row_sixteen[i];
             }
-    
-            // TODO(isaacsahle): figure why this is better than division
-            // Operator strength reduction
-            int y_quotient = ((y << 16) / 16) >> 16;
-            sad_values[y_quotient][row_block] += sum;            
-            row_block++;
+            sad_values[y_block][x_block] = sum;
+            x_block++;
         }
+        y_block++;
     }
 
     for (int y = 0; y < num_blocks_y; y++)
@@ -234,8 +292,12 @@ void encode(
                         }
                     }
                 }
-                // printf("Min sad: %u  motion x: %d y: %d\n", min_sad, motion_vector_x, motion_vector_y);
+                // if(min_sad > 0){
+                //     printf("Min sad: %u  motion x: %d y: %d\n", min_sad, motion_vector_x, motion_vector_y);
+                // }
             }
+            // printf("%d ", sad_values[y][x]);
         }
+        // printf("\n");
     }
 }

@@ -246,6 +246,8 @@ void encode(
                 //     printf("Min sad: %d  motion x: %d y: %d\n", min_sad, motion_vector_x, motion_vector_y);
                 // }
             }
+            // printf("%d ", sad_values[y][x]);
         }
+        // printf("\n");
     }
 }
