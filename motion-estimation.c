@@ -71,13 +71,17 @@ int main(int argc, char **argv)
     png_read_image(current_png, current_row_pointers);
     png_read_image(reference_png, reference_row_pointers);
 
-    encode(
+    if(current_height < BLOCK_HEIGHT || current_width < BLOCK_WIDTH){
+        perror("Provide an image with height and width dimensions >= 16\n");
+    } else {
+        encode(
         current_row_pointers,
         reference_row_pointers,
         current_height,
         reference_height,
         current_width,
         reference_width);
+    }
 
     fclose(current_image);
     fclose(reference_image);
